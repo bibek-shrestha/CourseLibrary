@@ -1,5 +1,6 @@
 ﻿
 using AutoMapper;
+using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -110,7 +111,14 @@ public class CoursesController : ControllerBase
 
         if (courseForAuthorFromRepo == null)
         {
-            return NotFound();
+            var courseToAdd = _mapper.Map<Course>(course);
+            courseToAdd.Id = courseId;
+            _courseLibraryRepository.AddCourse(authorId, courseToAdd);
+            await _courseLibraryRepository.SaveAsync();
+            var courseForResponse = _mapper.Map<CourseDto>(courseToAdd);
+            return CreatedAtRoute("GetCourseForAuthor"
+                , new {authorId, courseId = courseForResponse.Id}
+                , courseForResponse);
         }
 
         _mapper.Map(course, courseForAuthorFromRepo);
