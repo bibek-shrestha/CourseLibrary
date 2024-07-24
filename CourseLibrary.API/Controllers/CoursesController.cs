@@ -75,7 +75,7 @@ public class CoursesController : ControllerBase
     [HttpPut("{courseId}")]
     public async Task<IActionResult> UpdateCourseForAuthor(Guid authorId,
       Guid courseId,
-      CourseDto course)
+      CourseUpdateDto course)
     {
         if (!await _courseLibraryRepository.AuthorExistsAsync(authorId))
         {
