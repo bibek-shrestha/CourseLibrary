@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CourseLibrary.API.DbContexts;
-using CourseLibrary.API.Entities; 
+using CourseLibrary.API.Entities;
+using CourseLibrary.API.ResourceParameters;
 using Microsoft.EntityFrameworkCore;
 
 namespace CourseLibrary.API.Services;
@@ -150,23 +151,28 @@ public class CourseLibraryRepository : ICourseLibraryRepository
         return (await _context.SaveChangesAsync() >= 0);
     }
 
-    public async Task<IEnumerable<Author>> GetAuthorsAsync(string? mainCategory, string? searchQuery)
+    public async Task<IEnumerable<Author>> GetAuthorsAsync(AuthorsResourceParameters resourceParameters)
     {
-        if (string.IsNullOrWhiteSpace(mainCategory) && string.IsNullOrWhiteSpace(searchQuery))
+        if (resourceParameters == null)
+        {
+            throw new ArgumentNullException(nameof(resourceParameters));
+        } 
+
+        if (string.IsNullOrWhiteSpace(resourceParameters.MainCategory) && string.IsNullOrWhiteSpace(resourceParameters.SearchQuery))
         {
             return await this.GetAuthorsAsync();
         }
         var collection = _context.Authors as IQueryable<Author>;
-        if (!string.IsNullOrWhiteSpace(mainCategory))
+        if (!string.IsNullOrWhiteSpace(resourceParameters.MainCategory))
         {
-            mainCategory = mainCategory.Trim();
-            collection = collection.Where(a => a.MainCategory == mainCategory);
+            resourceParameters.MainCategory = resourceParameters.MainCategory.Trim();
+            collection = collection.Where(a => a.MainCategory == resourceParameters.MainCategory);
         }
-        if (!string.IsNullOrWhiteSpace(searchQuery)) {
-            searchQuery = searchQuery.Trim();
-            collection = collection.Where(a => a.MainCategory.Contains(searchQuery)
-                || a.FirstName.Contains(searchQuery)
-                || a.LastName.Contains(searchQuery)
+        if (!string.IsNullOrWhiteSpace(resourceParameters.SearchQuery)) {
+            resourceParameters.SearchQuery = resourceParameters.SearchQuery.Trim();
+            collection = collection.Where(a => a.MainCategory.Contains(resourceParameters.SearchQuery)
+                || a.FirstName.Contains(resourceParameters.SearchQuery)
+                || a.LastName.Contains(resourceParameters.SearchQuery)
             );
         }
         return await collection.ToListAsync();
