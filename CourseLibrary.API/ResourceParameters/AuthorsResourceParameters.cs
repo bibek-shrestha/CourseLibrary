@@ -1,6 +1,6 @@
 ﻿namespace CourseLibrary.API.ResourceParameters;
 
-public class AuthorsResourceParameters
+public class AuthorsResourceParameters: RequestParameters
 {
     public string? MainCategory { get; set; }
 

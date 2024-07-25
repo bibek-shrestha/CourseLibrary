@@ -157,11 +157,6 @@ public class CourseLibraryRepository : ICourseLibraryRepository
         {
             throw new ArgumentNullException(nameof(resourceParameters));
         } 
-
-        if (string.IsNullOrWhiteSpace(resourceParameters.MainCategory) && string.IsNullOrWhiteSpace(resourceParameters.SearchQuery))
-        {
-            return await this.GetAuthorsAsync();
-        }
         var collection = _context.Authors as IQueryable<Author>;
         if (!string.IsNullOrWhiteSpace(resourceParameters.MainCategory))
         {
@@ -175,7 +170,11 @@ public class CourseLibraryRepository : ICourseLibraryRepository
                 || a.LastName.Contains(resourceParameters.SearchQuery)
             );
         }
-        return await collection.ToListAsync();
+
+        return await collection
+            .Skip(resourceParameters.PageSize * (resourceParameters.PageNumber - 1))
+            .Take(resourceParameters.PageSize)
+            .ToListAsync();
 
     }
 }
