@@ -1,4 +1,5 @@
-﻿using CourseLibrary.API.DbContexts;
+﻿using System.Collections.ObjectModel;
+using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities; 
 using Microsoft.EntityFrameworkCore;
 
@@ -147,6 +148,29 @@ public class CourseLibraryRepository : ICourseLibraryRepository
     public async Task<bool> SaveAsync()
     {
         return (await _context.SaveChangesAsync() >= 0);
+    }
+
+    public async Task<IEnumerable<Author>> GetAuthorsAsync(string? mainCategory, string? searchQuery)
+    {
+        if (string.IsNullOrWhiteSpace(mainCategory) && string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return await this.GetAuthorsAsync();
+        }
+        var collection = _context.Authors as IQueryable<Author>;
+        if (!string.IsNullOrWhiteSpace(mainCategory))
+        {
+            mainCategory = mainCategory.Trim();
+            collection = collection.Where(a => a.MainCategory == mainCategory);
+        }
+        if (!string.IsNullOrWhiteSpace(searchQuery)) {
+            searchQuery = searchQuery.Trim();
+            collection = collection.Where(a => a.MainCategory.Contains(searchQuery)
+                || a.FirstName.Contains(searchQuery)
+                || a.LastName.Contains(searchQuery)
+            );
+        }
+        return await collection.ToListAsync();
+
     }
 }
 

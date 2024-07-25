@@ -23,12 +23,16 @@ public class AuthorsController : ControllerBase
             throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpGet] 
-    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
+    [HttpGet]
+    [HttpHead]
+    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors(
+        [FromQuery(Name = "main_category")] string? mainCategory = ""
+        , [FromQuery(Name = "search_query")] string? searchQuery = ""
+    )
     { 
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
-            .GetAuthorsAsync(); 
+            .GetAuthorsAsync(mainCategory, searchQuery); 
 
         // return them
         return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
