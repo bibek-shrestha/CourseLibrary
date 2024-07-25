@@ -88,7 +88,11 @@ public class CoursesController : ControllerBase
                 return NotFound();
             }
             var courseUpdateDto = _mapper.Map<CourseUpdateDto>(courseFromAuthor);
-            patchDocument.ApplyTo(courseUpdateDto);
+            patchDocument.ApplyTo(courseUpdateDto, ModelState);
+            if (!TryValidateModel(courseUpdateDto))
+            {
+                return ValidationProblem(ModelState);
+            }
             _mapper.Map(courseUpdateDto, courseFromAuthor);
             _courseLibraryRepository.UpdateCourse(courseFromAuthor);
             await _courseLibraryRepository.SaveAsync();
