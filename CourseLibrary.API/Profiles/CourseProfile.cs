@@ -6,7 +6,7 @@ public class CoursesProfile : Profile
     public CoursesProfile()
     {
         CreateMap<Entities.Course, Models.CourseDto>();
-        CreateMap<Models.CourseForCreationDto, Entities.Course>();
+        CreateMap<Models.CourseCreationDto, Entities.Course>();
         CreateMap<Models.CourseUpdateDto, Entities.Course>().ReverseMap();
     }
 }
