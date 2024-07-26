@@ -16,6 +16,8 @@ internal static class StartupHelperExtensions
             }).AddNewtonsoftJson(setupAction =>
                 setupAction.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver())
                 .AddXmlDataContractSerializerFormatters();
+        
+        builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
 
         builder.Services.AddScoped<ICourseLibraryRepository, 
             CourseLibraryRepository>();

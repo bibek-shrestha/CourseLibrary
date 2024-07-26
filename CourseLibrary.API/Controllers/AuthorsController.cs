@@ -92,7 +92,8 @@ public class AuthorsController : ControllerBase
                         pageNumber = resourceParameters.PageNumber - 1,
                         pageSize = resourceParameters.PageSize,
                         mainCategory = resourceParameters.MainCategory,
-                        searchQuery = resourceParameters.SearchQuery
+                        searchQuery = resourceParameters.SearchQuery,
+                        orderBy = resourceParameters.OrderBy
                     });
             case ResourceUriType.NEXT_PAGE:
                 return Url.Link("GetAuthors"
@@ -101,7 +102,8 @@ public class AuthorsController : ControllerBase
                         pageNumber = resourceParameters.PageNumber + 1,
                         pageSize = resourceParameters.PageSize,
                         mainCategory = resourceParameters.MainCategory,
-                        searchQuery = resourceParameters.SearchQuery
+                        searchQuery = resourceParameters.SearchQuery,
+                        orderBy = resourceParameters.OrderBy
                     });
             default:
                 return Url.Link("GetAuthors"
@@ -110,7 +112,8 @@ public class AuthorsController : ControllerBase
                        pageNumber = resourceParameters.PageNumber,
                        pageSize = resourceParameters.PageSize,
                        mainCategory = resourceParameters.MainCategory,
-                       searchQuery = resourceParameters.SearchQuery
+                       searchQuery = resourceParameters.SearchQuery,
+                       orderBy = resourceParameters.OrderBy
                    });
         }
     }
