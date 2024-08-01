@@ -15,14 +15,18 @@ public class AuthorsController : ControllerBase
     private readonly ICourseLibraryRepository _courseLibraryRepository;
     private readonly IMapper _mapper;
 
+    private readonly IPropertyMappingService _propertyMappingService;
+
     public AuthorsController(
-        ICourseLibraryRepository courseLibraryRepository,
-        IMapper mapper)
+        ICourseLibraryRepository courseLibraryRepository
+        , IMapper mapper
+        , IPropertyMappingService propertyMappingService)
     {
         _courseLibraryRepository = courseLibraryRepository ??
             throw new ArgumentNullException(nameof(courseLibraryRepository));
         _mapper = mapper ??
             throw new ArgumentNullException(nameof(mapper));
+        _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
     }
 
     [HttpGet(Name = "GetAuthors")]
@@ -31,12 +35,17 @@ public class AuthorsController : ControllerBase
         [FromQuery] AuthorsResourceParameters resourceParameters
     )
     {
+        if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Entities.Author>(resourceParameters.OrderBy))
+        {
+            return BadRequest();
+        }
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
             .GetAuthorsAsync(resourceParameters);
         var previousPageLink = authorsFromRepo.HasPrevious ? CreateAuthorResourceURI(resourceParameters, ResourceUriType.PREVIOUS_PAGE) : null;
-        var nextPageLink = authorsFromRepo.HasNext ? CreateAuthorResourceURI(resourceParameters, ResourceUriType.NEXT_PAGE): null;
-        var paginationMetadata = new {
+        var nextPageLink = authorsFromRepo.HasNext ? CreateAuthorResourceURI(resourceParameters, ResourceUriType.NEXT_PAGE) : null;
+        var paginationMetadata = new
+        {
             totalCount = authorsFromRepo.TotalCount,
             pageSize = authorsFromRepo.PageSize,
             currentPage = authorsFromRepo.CurrentPage,
