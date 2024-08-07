@@ -31,7 +31,7 @@ public class AuthorsController : ControllerBase
 
     [HttpGet(Name = "GetAuthors")]
     [HttpHead]
-    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors(
+    public async Task<IActionResult> GetAuthors(
         [FromQuery] AuthorsResourceParameters resourceParameters
     )
     {
@@ -57,7 +57,7 @@ public class AuthorsController : ControllerBase
         Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
         // return them
-        return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
+        return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo).ShapeData(resourceParameters.Fields));
     }
 
     [HttpGet("{authorId}", Name = "GetAuthor")]
@@ -102,7 +102,8 @@ public class AuthorsController : ControllerBase
                         pageSize = resourceParameters.PageSize,
                         mainCategory = resourceParameters.MainCategory,
                         searchQuery = resourceParameters.SearchQuery,
-                        orderBy = resourceParameters.OrderBy
+                        orderBy = resourceParameters.OrderBy,
+                        fields = resourceParameters.Fields
                     });
             case ResourceUriType.NEXT_PAGE:
                 return Url.Link("GetAuthors"
@@ -112,7 +113,8 @@ public class AuthorsController : ControllerBase
                         pageSize = resourceParameters.PageSize,
                         mainCategory = resourceParameters.MainCategory,
                         searchQuery = resourceParameters.SearchQuery,
-                        orderBy = resourceParameters.OrderBy
+                        orderBy = resourceParameters.OrderBy,
+                        fields = resourceParameters.Fields
                     });
             default:
                 return Url.Link("GetAuthors"
@@ -122,7 +124,8 @@ public class AuthorsController : ControllerBase
                        pageSize = resourceParameters.PageSize,
                        mainCategory = resourceParameters.MainCategory,
                        searchQuery = resourceParameters.SearchQuery,
-                       orderBy = resourceParameters.OrderBy
+                       orderBy = resourceParameters.OrderBy,
+                        fields = resourceParameters.Fields
                    });
         }
     }
