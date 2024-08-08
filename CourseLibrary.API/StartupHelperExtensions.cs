@@ -18,6 +18,7 @@ internal static class StartupHelperExtensions
                 .AddXmlDataContractSerializerFormatters();
         
         builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+        builder.Services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
 
         builder.Services.AddScoped<ICourseLibraryRepository, 
             CourseLibraryRepository>();

@@ -5,6 +5,7 @@ using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace CourseLibrary.API.Controllers;
 
@@ -17,16 +18,26 @@ public class AuthorsController : ControllerBase
 
     private readonly IPropertyMappingService _propertyMappingService;
 
+    private readonly IPropertyCheckerService _propertyCheckerService;
+    private readonly ProblemDetailsFactory _problemDetailsFactory;
+
     public AuthorsController(
         ICourseLibraryRepository courseLibraryRepository
         , IMapper mapper
-        , IPropertyMappingService propertyMappingService)
+        , IPropertyMappingService propertyMappingService
+        , IPropertyCheckerService propertyCheckerService
+        , ProblemDetailsFactory problemDetailsFactory)
     {
         _courseLibraryRepository = courseLibraryRepository ??
             throw new ArgumentNullException(nameof(courseLibraryRepository));
         _mapper = mapper ??
             throw new ArgumentNullException(nameof(mapper));
-        _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
+        _propertyMappingService = propertyMappingService
+            ?? throw new ArgumentNullException(nameof(propertyMappingService));
+        _propertyCheckerService = propertyCheckerService
+            ?? throw new ArgumentNullException(nameof(propertyCheckerService));
+        _problemDetailsFactory = problemDetailsFactory
+            ?? throw new ArgumentNullException(nameof(problemDetailsFactory));
     }
 
     [HttpGet(Name = "GetAuthors")]
@@ -39,6 +50,14 @@ public class AuthorsController : ControllerBase
         {
             return BadRequest();
         }
+        if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(resourceParameters.Fields))
+        {
+            return BadRequest(_problemDetailsFactory.CreateProblemDetails(
+                HttpContext
+                , statusCode: 400
+                , detail: $"Some or all of the requested fields does not exist on the resource: {resourceParameters.Fields}."
+            ));
+        };
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
             .GetAuthorsAsync(resourceParameters);
@@ -65,6 +84,14 @@ public class AuthorsController : ControllerBase
         [FromRoute] Guid authorId
         , [FromQuery] string? fields)
     {
+        if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+        {
+            return BadRequest(_problemDetailsFactory.CreateProblemDetails(
+                HttpContext
+                , statusCode: 400
+                , detail: $"Some or all of the requested fields does not exist on the resource: {fields}."
+            ));
+        };
         // get author from repo
         var authorFromRepo = await _courseLibraryRepository.GetAuthorAsync(authorId);
 
@@ -127,7 +154,7 @@ public class AuthorsController : ControllerBase
                        mainCategory = resourceParameters.MainCategory,
                        searchQuery = resourceParameters.SearchQuery,
                        orderBy = resourceParameters.OrderBy,
-                        fields = resourceParameters.Fields
+                       fields = resourceParameters.Fields
                    });
         }
     }
