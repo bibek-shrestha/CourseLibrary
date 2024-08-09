@@ -99,9 +99,13 @@ public class AuthorsController : ControllerBase
         {
             return NotFound();
         }
+        var links = CreateLinksForAuthor(authorId, fields);
+        var resourceResponse = _mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields)
+            as IDictionary<string, object?>;
+        resourceResponse.Add("links", links);
 
         // return author
-        return Ok(_mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields));
+        return Ok(resourceResponse);
     }
 
     [HttpPost]
@@ -117,6 +121,26 @@ public class AuthorsController : ControllerBase
         return CreatedAtRoute("GetAuthor",
             new { authorId = authorToReturn.Id },
             authorToReturn);
+    }
+
+    private IEnumerable<LinkDto> CreateLinksForAuthor(Guid authorId, string? fields)
+    {
+        var links = new List<LinkDto>();
+        links.Add(new(
+                string.IsNullOrWhiteSpace(fields)
+                ? Url.Link("GetAuthor", new { authorId })
+                : Url.Link("GetAuthor", new { authorId, fields })
+            , "self"
+            , "GET"));
+        links.Add(new(
+            Url.Link("CreateCourseForAuthor", new { authorId })
+            , "create_course_for_author"
+            , "POST"));
+        links.Add(new(
+            Url.Link("GetCoursesForAuthor", new { authorId })
+            , "courses"
+            , "GET"));
+        return links;
     }
 
     private string? CreateAuthorResourceURI(AuthorsResourceParameters resourceParameters, ResourceUriType type)
