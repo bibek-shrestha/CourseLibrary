@@ -11,7 +11,8 @@ public class AuthorsProfile : Profile
                 opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
             .ForMember(dest => dest.Age, opt => 
                 opt.MapFrom(src => src.DateOfBirth.GetCurrentAge()));
-         CreateMap<Models.AuthorCreationDto, Entities.Author>();
+        CreateMap<Models.AuthorCreationDto, Entities.Author>();
+        CreateMap<Entities.Author, Models.AuthorFullDto>();
     }
 }
 
