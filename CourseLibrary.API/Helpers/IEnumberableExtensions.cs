@@ -19,7 +19,8 @@ public static class IEnumberableExtensions
             var allPropertyInfo = typeof(TSource)
                 .GetProperties(BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
             propertyInfoList.AddRange(allPropertyInfo);
-        } else
+        }
+        else
         {
             var fieldList = fields.Split(',');
             foreach (var field in fieldList)
@@ -31,19 +32,19 @@ public static class IEnumberableExtensions
                 {
                     throw new Exception($"Property {propertyName} cannot be found on {typeof(TSource)}.");
                 }
-                 propertyInfoList.Add(propertyInfo);
+                propertyInfoList.Add(propertyInfo);
             }
-            foreach(TSource sourceObject in source)
+        }
+        foreach (TSource sourceObject in source)
+        {
+            var shapedDataObject = new ExpandoObject();
+            foreach (var propertyInfo in propertyInfoList)
             {
-                var shapedDataObject = new ExpandoObject();
-                foreach(var propertyInfo in propertyInfoList)
-                {
-                    var propertyValue = propertyInfo.GetValue(sourceObject);
-                    ((IDictionary<string, object?>)shapedDataObject).Add(propertyInfo.Name, propertyValue);
-                }
-                expandedObjectList.Add(shapedDataObject);
+                var propertyValue = propertyInfo.GetValue(sourceObject);
+                ((IDictionary<string, object?>)shapedDataObject).Add(propertyInfo.Name, propertyValue);
             }
-        } 
+            expandedObjectList.Add(shapedDataObject);
+        }
         return expandedObjectList;
     }
 }
