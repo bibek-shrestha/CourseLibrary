@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using AutoMapper;
 using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Models;
@@ -6,6 +7,7 @@ using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Net.Http.Headers;
 
 namespace CourseLibrary.API.Controllers;
 
@@ -90,8 +92,18 @@ public class AuthorsController : ControllerBase
     [HttpGet("{authorId}", Name = "GetAuthor")]
     public async Task<IActionResult> GetAuthor(
         [FromRoute] Guid authorId
-        , [FromQuery] string? fields)
+        , [FromQuery] string? fields
+        , [FromHeader(Name =  "Accept")] string? mediaType)
     {
+        if (!MediaTypeHeaderValue  .TryParse(mediaType, out var mediaTypeHeaderValue))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails
+                    (HttpContext
+                    , statusCode: 400
+                    , detail: $"{mediaType} is not supported")
+            );
+        }
         if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
         {
             return BadRequest(_problemDetailsFactory.CreateProblemDetails(
@@ -107,16 +119,20 @@ public class AuthorsController : ControllerBase
         {
             return NotFound();
         }
-        var links = CreateLinksForAuthor(authorId, fields);
-        var resourceResponse = _mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields)
-            as IDictionary<string, object?>;
-        resourceResponse.Add("links", links);
+        if (mediaTypeHeaderValue.MediaType == "application/vnd.darkhorse.hateos+json")
+        {
+            var links = CreateLinksForAuthor(authorId, fields);
+            var resourceResponse = _mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields)
+                as IDictionary<string, object?>;
+            resourceResponse.Add("links", links);
 
-        // return author
-        return Ok(resourceResponse);
+            // return author
+            return Ok(resourceResponse);
+        }
+        return Ok(_mapper.Map<AuthorDto>(authorFromRepo));
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateAuthor")]
     public async Task<ActionResult<AuthorDto>> CreateAuthor(AuthorCreationDto author)
     {
         var authorEntity = _mapper.Map<Entities.Author>(author);
