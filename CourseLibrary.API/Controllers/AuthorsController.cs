@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using AutoMapper;
+using CourseLibrary.API.ActionContraints;
 using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
@@ -143,7 +144,36 @@ public class AuthorsController : ControllerBase
         return Ok(responseResource);
     }
 
+    [HttpPost(Name = "CreateAuthorWithDateOfDeath")]
+    [RequestHeaderMatchesMediaType("Content-Type"
+        , "application/vnd.darkhorse.authorforcreationwithdateofdeath+json")]
+    [Consumes("application/vnd.darkhorse.authorforcreationwithdateofdeath+json")]
+    public async Task<ActionResult<AuthorDto>> CreateAuthorWithDateOfDeath(AuthorCreationWithDateOfDeathDto author)
+    {
+        var authorEntity = _mapper.Map<Entities.Author>(author);
+
+        _courseLibraryRepository.AddAuthor(authorEntity);
+        await _courseLibraryRepository.SaveAsync();
+
+        var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+
+        var links = CreateLinksForAuthor(authorToReturn.Id, null);
+
+        var resourceResponse = authorToReturn.ShapeData(null)
+            as IDictionary<string, object?>;
+        resourceResponse.Add("links", links);
+
+        return CreatedAtRoute("GetAuthor",
+            new { authorId = resourceResponse["Id"] },
+            resourceResponse);
+    }
+
     [HttpPost(Name = "CreateAuthor")]
+    [RequestHeaderMatchesMediaType("Content-Type"
+        , "application/json"
+        , "application/vnd.darkhorse.authorforcreation+json")]
+    [Consumes("application/json"
+        , "application/vnd.darkhorse.authorforcreation+json")]
     public async Task<ActionResult<AuthorDto>> CreateAuthor(AuthorCreationDto author)
     {
         var authorEntity = _mapper.Map<Entities.Author>(author);
